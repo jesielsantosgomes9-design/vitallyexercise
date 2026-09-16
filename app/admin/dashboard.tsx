@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  FlatList,
-  Alert,
-  ActivityIndicator,
-  Image,
-} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { styles } from '../styles/dashboardStyles';
+import { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Image,
+    Modal,
+    ScrollView,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { styles } from '../../styles/dashboardStyles';
 
 // Ajuste para o IP da sua máquina na rede local
-const API_URL = 'http://SEU_IP:8080/api';
+const API_URL = 'http://MEU_IP:8080/api';
 
 type Chamado = {
   id: string;

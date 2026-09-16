@@ -10,7 +10,10 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { styles } from '../styles/loginStyles';
+import { styles } from '@/styles/loginStyles';
+
+// Ajuste para o IP da sua máquina na rede local (quando o backend estiver pronto)
+const API_URL = 'http://SEU_IP:8080/api';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -18,7 +21,7 @@ export default function LoginScreen() {
   const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
 
- async function handleLogin() {
+  async function handleLogin() {
     if (!email || !senha) {
       Alert.alert('Atenção', 'Preencha e-mail e senha.');
       return;
@@ -26,15 +29,21 @@ export default function LoginScreen() {
 
     setLoading(true);
 
-    // MODO TEMPORÁRIO: navega direto sem validar na API (backend ainda não pronto)
+    // ===== MODO TEMPORÁRIO =====
+    // Backend ainda não está pronto, então pulamos a validação real
+    // e navegamos direto para o dashboard, só para testar a navegação.
     setTimeout(() => {
       setLoading(false);
-      router.replace('/admin/dashboard');
+      router.replace('/admin/dashboard'); // ajuste o caminho conforme a pasta real do seu projeto
     }, 500);
+    return;
+    // ===== FIM DO MODO TEMPORÁRIO =====
 
-    /* Quando o backend estiver pronto, volte a usar isto:
+    /* Quando o backend estiver pronto, apague o bloco acima
+       (do "MODO TEMPORÁRIO" até o "return;") e descomente isto:
+
     try {
-      const response = await fetch('http://SEU_IP:8080/api/admin/login', {
+      const response = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha }),
@@ -45,7 +54,9 @@ export default function LoginScreen() {
       }
 
       const data = await response.json();
-      router.replace('/(admin)/dashboard');
+      // TODO: salvar token/dados do admin (ex: AsyncStorage ou contexto de auth)
+
+      router.replace('/admin/dashboard');
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível fazer login. Verifique seus dados.');
     } finally {
@@ -53,6 +64,7 @@ export default function LoginScreen() {
     }
     */
   }
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -91,7 +103,7 @@ export default function LoginScreen() {
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="#000" />
+            <ActivityIndicator color="#FFFFFF" />
           ) : (
             <Text style={styles.buttonText}>ENTRAR</Text>
           )}
