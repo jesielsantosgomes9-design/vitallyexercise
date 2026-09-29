@@ -10,59 +10,65 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { styles } from '@/styles/loginStyles';
 
-// Ajuste para o IP da sua máquina na rede local (quando o backend estiver pronto)
-const API_URL = 'http://SEU_IP:8080/api';
+// Troque SEU_IP pelo IPv4 do seu PC (o backend roda na porta 8080)
+const API_URL = 'http://192.168.1.7:8080/api';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
-    if (!email || !senha) {
+    const emailLimpo = email.trim().toLowerCase();
+
+    if (!emailLimpo || !senha) {
       Alert.alert('Atenção', 'Preencha e-mail e senha.');
       return;
     }
 
     setLoading(true);
-
-    // ===== MODO TEMPORÁRIO =====
-    // Backend ainda não está pronto, então pulamos a validação real
-    // e navegamos direto para o dashboard, só para testar a navegação.
-    setTimeout(() => {
-      setLoading(false);
-      router.replace('/admin/dashboard'); // ajuste o caminho conforme a pasta real do seu projeto
-    }, 500);
-    return;
-    // ===== FIM DO MODO TEMPORÁRIO =====
-
-    /* Quando o backend estiver pronto, apague o bloco acima
-       (do "MODO TEMPORÁRIO" até o "return;") e descomente isto:
-
     try {
-      const response = await fetch(`${API_URL}/admin/login`, {
+      const response = await fetch(`${API_URL}/usuario/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ email: emailLimpo, senha }),
       });
 
+      if (response.status === 401) {
+        Alert.alert('Acesso negado', 'E-mail ou senha inválidos.');
+        return;
+      }
       if (!response.ok) {
-        throw new Error('Credenciais inválidas');
+        throw new Error(`HTTP ${response.status}`);
       }
 
       const data = await response.json();
-      // TODO: salvar token/dados do admin (ex: AsyncStorage ou contexto de auth)
+      const cargo: string | undefined = data.usuario?.cargo;
 
-      router.replace('/admin/dashboard');
-    } catch (error) {
-      Alert.alert('Erro', 'Não foi possível fazer login. Verifique seus dados.');
+      if (cargo === 'ADMIN') {
+        router.replace('/admin/dashboard');
+      } else if (cargo === 'TECNICO') {
+        router.replace('/manutencao/chamados');
+      } else {
+        Alert.alert(
+          'Acesso restrito',
+          'Este aplicativo é exclusivo para administradores e equipe de manutenção.'
+        );
+      }
+    } catch (e) {
+      console.log('ERRO LOGIN:', e);
+      Alert.alert(
+        'Erro de conexão',
+        'Não foi possível falar com o servidor. Confira o IP no app e se o backend está rodando.'
+      );
     } finally {
       setLoading(false);
     }
-    */
   }
 
   return (
@@ -71,8 +77,10 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.logoContainer}>
-        <Text style={styles.logoText}>VITALLY<Text style={styles.logoTextAccent}>EXERCISE</Text></Text>
-        <Text style={styles.subtitle}>Painel do Administrador</Text>
+        <Text style={styles.logoText}>
+          VITALLY<Text style={styles.logoTextAccent}>EXERCISE</Text>
+        </Text>
+        <Text style={styles.subtitle}>Gestão da academia</Text>
       </View>
 
       <View style={styles.form}>
@@ -85,23 +93,30 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
         />
 
         <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor="#777"
-          value={senha}
-          onChangeText={setSenha}
-          secureTextEntry
-        />
+        <View style={styles.passwordWrapper}>
+          <TextInput
+            style={[styles.input, { paddingRight: 46 }]}
+            placeholder="••••••••"
+            placeholderTextColor="#777"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry={!mostrarSenha}
+            autoCapitalize="none"
+            onSubmitEditing={handleLogin}
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setMostrarSenha((v) => !v)}
+          >
+            <Ionicons name={mostrarSenha ? 'eye-off' : 'eye'} size={20} color="#8A8F98" />
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          disabled={loading}
-        >
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
@@ -110,7 +125,9 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.footer}>Acesso restrito a administradores</Text>
+      <Text style={styles.footer}>
+        Acesso para administradores e equipe de manutenção
+      </Text>
     </KeyboardAvoidingView>
   );
 }

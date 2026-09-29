@@ -1,6 +1,16 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
+   
+  passwordWrapper: {
+    justifyContent: 'center',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    padding: 6,
+  },
+ 
   container: {
     flex: 1,
     backgroundColor: '#0D0D0D',
